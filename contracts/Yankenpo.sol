@@ -22,6 +22,7 @@ contract Yankenpo is Ownable {
   event GameStarted(address indexed player_1, uint256 pending_bet);
   event GameReady(address indexed player_1, address indexed player_2, uint256 pending_bet);
   event GameFinished(address indexed winner, address indexed looser);
+  event GameCanceled(address indexed player_1);
 
   event GainWithdrawn(address indexed winner, uint256 gain);
 
@@ -318,14 +319,15 @@ contract Yankenpo is Ownable {
    * @dev Function that cancel the game if nobody joined it and get back the bet.
    * Only player 1 should be able to cancel the game.
    */
-  function cancelGame(address payable player) public virtual
+  function cancelGame() public virtual
     onlyPlayer1()
     whenStarted()
   {
     uint256 payment = pending_bet;
     pending_bet = 0;
     _state = State.Canceled;
-    player.transfer(payment);
+    payable(_msgSender()).transfer(payment);
+    emit GameCanceled(_msgSender());
   }
   
   /**
