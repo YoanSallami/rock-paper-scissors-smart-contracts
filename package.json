@@ -17,9 +17,9 @@
     "@openzeppelin/contracts": "^4.3.3"
   },
   "scripts": {
-    "compile": "npx hardhat compile",
-    "test": "npx hardhat test",
-    "deploy": "npx hardhat run scripts/deploy.js",
-    "node": "npx hardhat node"
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy": "hardhat run scripts/deploy.js",
+    "node": "hardhat node"
   }
 }
