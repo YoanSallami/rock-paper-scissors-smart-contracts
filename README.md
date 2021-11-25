@@ -9,16 +9,21 @@ cd yankenpo-smart-contracts
 yarn
 ```
 
+# Run the tests
+
+Run the tests with:
+```
+yarn test
+```
+
 # Run on local Ethereum node
 
 Run the local Ethereum node with:
-
 ```
 yarn node
 ```
 
 In another shell:
-
 ```
 yarn deploy --network localhost
 ```
