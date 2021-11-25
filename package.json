@@ -22,7 +22,7 @@
     "compile": "hardhat compile",
     "test": "hardhat test",
     "deploy": "hardhat run scripts/deploy.js",
-    "node": "hardhat node",
+    "serve": "hardhat node",
     "docgen": "solidity-docgen --solc-module solc-0.8"
   }
 }
