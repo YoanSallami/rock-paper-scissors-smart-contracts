@@ -4,6 +4,11 @@ pragma solidity >=0.8.0 <0.9.0;
 import "./YankenpoFactory.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
+/**
+ * @title YankenpoControl
+ * @dev Smart contract that manage the maintainer and treasurer roles
+ * and functions.
+ */
 contract YankenpoControl is AccessControl {
 
     bytes32 public constant TREASURER_ROLE = keccak256("TREASURER_ROLE");
