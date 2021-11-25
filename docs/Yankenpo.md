@@ -5,8 +5,7 @@
 The smart contract that manage the logic of a Rock-Paper-Cissor game.
 This contract should be instanciated by a trusted contract that manage the commision.
 In addition to that, this contract store the bet until the end of the game 
-to avoid the main contract to manage store it because it is a more secure way 
-of dealing with the it.
+to avoid the main contract to manage store it.
 
 ### `onlyPlayer1()`
 
@@ -180,7 +179,7 @@ only player factory contract should start the game.
 Function to join the game by getting the second part of the bet.
 
 
-### `cancelGame(address payable player)` (public)
+### `cancelGame()` (public)
 
 
 
@@ -217,12 +216,17 @@ a new round if needed, only player 1 should reveal.
 Function that claim the round if player 1 do not reveal his secret,
 only player 2 can claim the round.
 
-### `withdrawGain(address payable player)` (public)
+### `withdrawBet()` (public)
 
 
 
-Withdraw the bet. Only the winner should withdraw.
+Withdraw the bet if game canceled, only the player 1 should withdraw.
 
+### `withdrawGain()` (public)
+
+
+
+Withdraw the bet, only the winner should withdraw.
 
 
 ### `NewRound(uint256 round_id, address player_1, address player_2)`
@@ -268,6 +272,18 @@ Withdraw the bet. Only the winner should withdraw.
 
 
 ### `GameFinished(address winner, address looser)`
+
+
+
+
+
+### `GameCanceled(address player_1, uint256 pending_bet)`
+
+
+
+
+
+### `BetWithdrawn(address player_1, uint256 bet)`
 
 
 
