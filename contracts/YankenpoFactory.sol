@@ -52,9 +52,9 @@ contract YankenpoFactory is Ownable, Pausable {
     games.push(game_addr);
     uint256 game_id = games.length - 1;
     uint256 commision_amount = (msg.value * commision_percent) / 100;
+    emit NewGame(game_id, game_addr, _msgSender(), msg.value);
     Yankenpo(games[game_id]).startGame{value: msg.value - commision_amount}();
     // Emit the event associated with the game creation
-    emit NewGame(game_id, game_addr, _msgSender(), msg.value);
     return game_id;
   }
   
