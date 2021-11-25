@@ -8,8 +8,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * @dev The smart contract that manage the logic of a Rock-Paper-Cissor game.
  * This contract should be instanciated by a trusted contract that manage the commision.
  * In addition to that, this contract store the bet until the end of the game 
- * to avoid the main contract to manage store it because it is a more secure way 
- * of dealing with the it.
+ * to avoid the main contract to manage store it.
  */
 contract Yankenpo is Ownable {
 
@@ -22,8 +21,9 @@ contract Yankenpo is Ownable {
   event GameStarted(address indexed player_1, uint256 pending_bet);
   event GameReady(address indexed player_1, address indexed player_2, uint256 pending_bet);
   event GameFinished(address indexed winner, address indexed looser);
-  event GameCanceled(address indexed player_1);
+  event GameCanceled(address indexed player_1, uint256 pending_bet);
 
+  event BetWithdrawn(address indexed player_1, uint256 bet);
   event GainWithdrawn(address indexed winner, uint256 gain);
 
   // Variables for the addresses used
@@ -323,11 +323,8 @@ contract Yankenpo is Ownable {
     onlyPlayer1()
     whenStarted()
   {
-    uint256 payment = pending_bet;
-    pending_bet = 0;
     _state = State.Canceled;
-    payable(_msgSender()).transfer(payment);
-    emit GameCanceled(_msgSender());
+    emit GameCanceled(_msgSender(), pending_bet);
   }
   
   /**
@@ -341,6 +338,7 @@ contract Yankenpo is Ownable {
   {
     _getLastRound().commitment = commitment;
     _getLastRound().state = State.Started;
+    emit RoundCommited(rounds.length-1, player_1, player_2);
   }
   
   /**
@@ -356,6 +354,7 @@ contract Yankenpo is Ownable {
     _getLastRound().choice = choice;
     round_expiration = block.timestamp + round_expiration_time;
     _getLastRound().state = State.Ready;
+    emit RoundPlayed(rounds.length-1, player_1, player_2);
   }
   
   /**
@@ -389,6 +388,7 @@ contract Yankenpo is Ownable {
         // Nothing to do
     }
     _getLastRound().state = State.Finished;
+    emit RoundRevealed(rounds.length-1, player_1, player_2);
     if (_updateWinner() == false) {
       // Then continue the game by creating a new round
       _createRound();
@@ -406,6 +406,7 @@ contract Yankenpo is Ownable {
   {
     player_2_count += 1;
     _getLastRound().state = State.Canceled;
+    emit RoundTimeout(rounds.length-1, player_1, player_2);
     if (_updateWinner() == false) {
       // Then continue the game by creating a new round
       _createRound();
@@ -413,17 +414,29 @@ contract Yankenpo is Ownable {
   }
 
   /**
-   * @dev Withdraw the bet. Only the winner should withdraw.
-   * @param player The winner of the game.
+   * @dev Withdraw the bet if game canceled, only the player 1 should withdraw.
    */
-  function withdrawGain(address payable player) public virtual payable
+  function withdrawBet() public virtual payable
+    onlyPlayer1()
+    whenCanceled()
+  {
+    uint payment = pending_bet;
+    pending_bet = 0;
+    payable(player_1).transfer(payment);
+    emit BetWithdrawn(player_1, payment);
+  }
+
+  /**
+   * @dev Withdraw the bet, only the winner should withdraw.
+   */
+  function withdrawGain() public virtual payable
     onlyWinner()
     whenFinished()
   {
     uint256 payment = pending_bet;
     pending_bet = 0;
-    player.transfer(payment);
-    emit GainWithdrawn(player, payment);
+    payable(winner).transfer(payment);
+    emit GainWithdrawn(winner, payment);
   }
 
 }

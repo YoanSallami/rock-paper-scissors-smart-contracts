@@ -19,7 +19,7 @@ contract YankenpoFactory is Ownable, Pausable {
   address[] public games;
 
   // Variables to manage afk players
-  uint256 internal round_expiration_time = 5 hours;
+  uint256 internal round_expiration_time = 1 hours;
 
   // Variables for the business model
   uint256 public minimum_bet;
@@ -29,7 +29,7 @@ contract YankenpoFactory is Ownable, Pausable {
   /**
    * @dev Smart contract constructor.
    */
-  constructor() Ownable() Pausable() {}
+  constructor() Pausable() Ownable() {}
 
   /**
    * @dev Function that return the deployed games addresses.
@@ -108,6 +108,7 @@ contract YankenpoFactory is Ownable, Pausable {
   function setCommisionPercent(uint8 percent) public
     onlyOwner()
   {
+    require(percent>0 && percent <=100, "Invalid commision percent");
     commision_percent = percent;
   }
 
