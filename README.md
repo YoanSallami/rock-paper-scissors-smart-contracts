@@ -1,6 +1,8 @@
 # yankenpo-smart-contracts
 Smart contracts for Yankenpo blockchain based game
 
+[![Node.js CI](https://github.com/doxa-games-studio/yankenpo-smart-contracts/actions/workflows/node.js.yml/badge.svg)](https://github.com/doxa-games-studio/yankenpo-smart-contracts/actions/workflows/node.js.yml)
+
 # Install
 
 ```
