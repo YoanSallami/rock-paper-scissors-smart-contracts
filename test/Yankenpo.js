@@ -153,16 +153,131 @@ describe("Yankenpo contract", function () {
 
     describe("Fight (2 rounds)", function () {
         beforeEach(async function () {
-            const secretChoice = ROCK;
-            const nonce = "0x" + crypto.randomBytes(32).toString('hex');
-            const secret = ethers.utils.solidityKeccak256(["uint8", "bytes32"],[secretChoice, nonce]);
+            const secretChoice0 = ROCK;
+            const nonce0 = "0x" + crypto.randomBytes(32).toString('hex');
+            const secret0 = ethers.utils.solidityKeccak256(["uint8", "bytes32"],[secretChoice0, nonce0]);
 
             await contractInstance.startGame({value: starting_bet});
             await contractInstance.joinGame(bob.address, {value: starting_bet});
 
-            await contractInstanceFromAlice.commitRound(secret);
+            await contractInstanceFromAlice.commitRound(secret0);
             await contractInstanceFromBob.playRound(CISSOR);
-            await contractInstanceFromAlice.revealRound(ROCK, nonce);
+            await contractInstanceFromAlice.revealRound(ROCK, nonce0);
+        });
+        it("Should commit the second secret", async function() {
+            const secretChoice1 = PAPER;
+            const nonce1 = "0x" + crypto.randomBytes(32).toString('hex');
+            const secret1 = ethers.utils.solidityKeccak256(["uint8", "bytes32"],[secretChoice1, nonce1]);
+            await expect(contractInstanceFromAlice.commitRound(secret1))
+                .to.emit(contractInstance, 'RoundCommited')
+                .withArgs(1, alice.address, bob.address);
+        });
+        it("Should play the first round", async function() {
+            const secretChoice1 = PAPER;
+            const nonce1 = "0x" + crypto.randomBytes(32).toString('hex');
+            const secret1 = ethers.utils.solidityKeccak256(["uint8", "bytes32"],[secretChoice1, nonce1]);
+            await contractInstanceFromAlice.commitRound(secret1);
+            await expect(contractInstanceFromBob.playRound(ROCK))
+                .to.emit(contractInstance, 'RoundPlayed')
+                .withArgs(1, alice.address, bob.address);
+        });
+        it("Should reveal the first secret", async function() {
+            const secretChoice1 = PAPER;
+            const nonce1 = "0x" + crypto.randomBytes(32).toString('hex');
+            const secret1 = ethers.utils.solidityKeccak256(["uint8", "bytes32"],[secretChoice1, nonce1]);
+            await contractInstanceFromAlice.commitRound(secret1);
+            await contractInstanceFromBob.playRound(ROCK);
+            await expect(contractInstanceFromAlice.revealRound(PAPER, nonce1))
+                .to.emit(contractInstance, 'RoundRevealed')
+                .withArgs(1, alice.address, bob.address);
+        });
+        it("Should have the right count", async function() {
+            const secretChoice1 = PAPER;
+            const nonce1 = "0x" + crypto.randomBytes(32).toString('hex');
+            const secret1 = ethers.utils.solidityKeccak256(["uint8", "bytes32"],[secretChoice1, nonce1]);
+            await contractInstanceFromAlice.commitRound(secret1);
+            await contractInstanceFromBob.playRound(ROCK);
+            await contractInstanceFromAlice.revealRound(PAPER, nonce1);
+            expect(await contractInstance.player_1_count()).to.equals(2);
+            expect(await contractInstance.player_2_count()).to.equals(0);
+        });
+        it("Should not have winner", async function() {
+            const secretChoice1 = PAPER;
+            const nonce1 = "0x" + crypto.randomBytes(32).toString('hex');
+            const secret1 = ethers.utils.solidityKeccak256(["uint8", "bytes32"],[secretChoice1, nonce1]);
+            await contractInstanceFromAlice.commitRound(secret1);
+            await contractInstanceFromBob.playRound(ROCK);
+            await contractInstanceFromAlice.revealRound(PAPER, nonce1);
+            expect(await contractInstance.winner()).to.equals('0x0000000000000000000000000000000000000000');
+        });
+    });
+
+    describe("Fight (3 rounds)", function () {
+        beforeEach(async function () {
+            const secretChoice0 = ROCK;
+            const nonce0 = "0x" + crypto.randomBytes(32).toString('hex');
+            const secret0 = ethers.utils.solidityKeccak256(["uint8", "bytes32"],[secretChoice0, nonce0]);
+
+            const secretChoice1 = PAPER;
+            const nonce1 = "0x" + crypto.randomBytes(32).toString('hex');
+            const secret1 = ethers.utils.solidityKeccak256(["uint8", "bytes32"],[secretChoice1, nonce1]);
+
+            await contractInstance.startGame({value: starting_bet});
+            await contractInstance.joinGame(bob.address, {value: starting_bet});
+
+            await contractInstanceFromAlice.commitRound(secret0);
+            await contractInstanceFromBob.playRound(CISSOR);
+            await contractInstanceFromAlice.revealRound(ROCK, nonce0);
+
+            await contractInstanceFromAlice.commitRound(secret1);
+            await contractInstanceFromBob.playRound(ROCK);
+            await contractInstanceFromAlice.revealRound(PAPER, nonce1);
+        });
+        it("Should commit the third secret", async function() {
+            const secretChoice2 = CISSOR;
+            const nonce2 = "0x" + crypto.randomBytes(32).toString('hex');
+            const secret2 = ethers.utils.solidityKeccak256(["uint8", "bytes32"],[secretChoice2, nonce2]);
+            await expect(contractInstanceFromAlice.commitRound(secret2))
+                .to.emit(contractInstance, 'RoundCommited')
+                .withArgs(2, alice.address, bob.address);
+        });
+        it("Should play the first round", async function() {
+            const secretChoice2 = CISSOR;
+            const nonce2 = "0x" + crypto.randomBytes(32).toString('hex');
+            const secret2 = ethers.utils.solidityKeccak256(["uint8", "bytes32"],[secretChoice2, nonce2]);
+            await contractInstanceFromAlice.commitRound(secret2);
+            await expect(contractInstanceFromBob.playRound(PAPER))
+                .to.emit(contractInstance, 'RoundPlayed')
+                .withArgs(2, alice.address, bob.address);
+        });
+        it("Should reveal the first secret", async function() {
+            const secretChoice2 = CISSOR;
+            const nonce2 = "0x" + crypto.randomBytes(32).toString('hex');
+            const secret2 = ethers.utils.solidityKeccak256(["uint8", "bytes32"],[secretChoice2, nonce2]);
+            await contractInstanceFromAlice.commitRound(secret2);
+            await contractInstanceFromBob.playRound(PAPER);
+            await expect(contractInstanceFromAlice.revealRound(CISSOR, nonce2))
+                .to.emit(contractInstance, 'RoundRevealed')
+                .withArgs(2, alice.address, bob.address);
+        });
+        it("Should have the right count", async function() {
+            const secretChoice2 = CISSOR;
+            const nonce2 = "0x" + crypto.randomBytes(32).toString('hex');
+            const secret2 = ethers.utils.solidityKeccak256(["uint8", "bytes32"],[secretChoice2, nonce2]);
+            await contractInstanceFromAlice.commitRound(secret2);
+            await contractInstanceFromBob.playRound(PAPER);
+            await contractInstanceFromAlice.revealRound(CISSOR, nonce2);
+            expect(await contractInstance.player_1_count()).to.equals(3);
+            expect(await contractInstance.player_2_count()).to.equals(0);
+        });
+        it("Should have winner", async function() {
+            const secretChoice2 = CISSOR;
+            const nonce2 = "0x" + crypto.randomBytes(32).toString('hex');
+            const secret2 = ethers.utils.solidityKeccak256(["uint8", "bytes32"],[secretChoice2, nonce2]);
+            await contractInstanceFromAlice.commitRound(secret2);
+            await contractInstanceFromBob.playRound(PAPER);
+            await contractInstanceFromAlice.revealRound(CISSOR, nonce2);
+            expect(await contractInstance.winner()).to.equals(alice.address);
         });
     });
 
