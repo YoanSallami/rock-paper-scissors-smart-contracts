@@ -19,18 +19,18 @@ describe("Yankenpo contract", function () {
     const PAPER = 1;
     const CISSOR = 2;
 
-    let starting_bet;
-    let round_expiration_time;
+    const access_nonce = "0x" + crypto.randomBytes(32).toString('hex');
+    const access_key = ethers.utils.solidityKeccak256(["bytes32"], [access_nonce]);
+
+    const starting_bet = 300000;
+    const round_expiration_time = 60*60*5;
 
     beforeEach(async function () {
         Yankenpo = await ethers.getContractFactory("Yankenpo");
 
         [owner, alice, bob, max] = await ethers.getSigners();
 
-        starting_bet = 300000;
-        round_expiration_time = 60*60*5;
-
-        contractInstance = await Yankenpo.deploy(alice.address, starting_bet, round_expiration_time);
+        contractInstance = await Yankenpo.deploy(alice.address, access_key, starting_bet, round_expiration_time);
 
         contractInstanceFromAlice = contractInstance.connect(alice);
         contractInstanceFromBob = contractInstance.connect(bob);
@@ -99,7 +99,7 @@ describe("Yankenpo contract", function () {
 
         beforeEach(async function () {
             await contractInstance.startGame({value: starting_bet});
-            await contractInstance.joinGame(bob.address, {value: starting_bet})
+            await contractInstance.joinGame(bob.address, {value: starting_bet});
         });
 
         it("Should commit the first secret", async function() {
@@ -150,7 +150,20 @@ describe("Yankenpo contract", function () {
         });
 
     });
+
     describe("Fight (2 rounds)", function () {
+        beforeEach(async function () {
+            const secretChoice = ROCK;
+            const nonce = "0x" + crypto.randomBytes(32).toString('hex');
+            const secret = ethers.utils.solidityKeccak256(["uint8", "bytes32"],[secretChoice, nonce]);
+
+            await contractInstance.startGame({value: starting_bet});
+            await contractInstance.joinGame(bob.address, {value: starting_bet});
+
+            await contractInstanceFromAlice.commitRound(secret);
+            await contractInstanceFromBob.playRound(CISSOR);
+            await contractInstanceFromAlice.revealRound(ROCK, nonce);
+        });
     });
 
 });

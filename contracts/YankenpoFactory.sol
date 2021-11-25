@@ -43,12 +43,16 @@ contract YankenpoFactory is Ownable, Pausable {
    * @dev Function that create a new Yankenpo game.
    * @return The game index.
    */
-  function createGame() public payable virtual
+  function createGame(bytes32 access_key) public payable virtual
     whenNotPaused() returns (uint256)
   {
     require(msg.value >= minimum_bet, "Bet value not enough");
     // Create the game contract and store it
-    address game_addr = address(new Yankenpo(_msgSender(), msg.value, round_expiration_time));
+    address game_addr = address(new Yankenpo(
+        _msgSender(),
+        access_key,
+        msg.value,
+        round_expiration_time));
     games.push(game_addr);
     uint256 game_id = games.length - 1;
     uint256 commision_amount = (msg.value * commision_percent) / 100;
@@ -61,11 +65,13 @@ contract YankenpoFactory is Ownable, Pausable {
   /**
    * @dev Function that join an already created game.
    * @param game_id The game index.
+   * @param access_nonce The secret access key.
    */
-  function joinGame(uint256 game_id) public payable virtual
+  function joinGame(uint256 game_id, bytes32 access_nonce) public payable virtual
     whenNotPaused()
   {
     require(_msgSender() != Yankenpo(games[game_id]).player_1(), "Caller is player 1");
+    require(Yankenpo(games[game_id]).access_key() == keccak256(abi.encodePacked(access_nonce)), "Access key do not match");
     require(msg.value == Yankenpo(games[game_id]).starting_bet(), "Bet value not equals to starting bet");
     uint256 commision_amount = (msg.value * commision_percent) / 100;
     Yankenpo(games[game_id]).joinGame{value: msg.value - commision_amount}(_msgSender());
