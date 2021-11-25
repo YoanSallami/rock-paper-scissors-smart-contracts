@@ -1,0 +1,25 @@
+{
+  "name": "yankenpo-smart-contracts",
+  "version": "0.0.1",
+  "main": "index.js",
+  "repository": "https://github.com/doxa-games-studio/yankenpo-smart-contracts.git",
+  "author": "YoanSallami <sallami.yoan@gmail.com>",
+  "license": "GPL-3.0",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "chai": "^4.3.4",
+    "ethereum-waffle": "^3.4.0",
+    "ethers": "^5.5.1",
+    "hardhat": "^2.7.0"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^4.3.3"
+  },
+  "scripts": {
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "deploy": "npx hardhat run scripts/deploy.js",
+    "node": "npx hardhat node"
+  }
+}

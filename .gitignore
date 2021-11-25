@@ -1,3 +1,7 @@
+# Builds
+artifacts/
+cache/
+
 # Logs
 logs
 *.log
