@@ -35,7 +35,7 @@ contract Yankenpo is Ownable {
   uint public starting_bet;
   uint public pending_bet;
 
-  bytes32 public access_key;
+  bytes32 public access_lock;
   
   // Enum for the machine states
   enum State
@@ -79,13 +79,13 @@ contract Yankenpo is Ownable {
    * @param time The round expiration time.
    */
   constructor(address player,
-              bytes32 key,
+              bytes32 lock,
               uint256 bet,
               uint256 time)
     Ownable()
   {
     player_1 = player;
-    access_key = key;
+    access_lock = lock;
     starting_bet = bet;
     round_expiration_time = time;
     _state = State.Created;

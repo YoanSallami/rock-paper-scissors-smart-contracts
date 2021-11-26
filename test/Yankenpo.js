@@ -270,7 +270,7 @@ describe("Yankenpo contract", function () {
             expect(await contractInstance.player_1_count()).to.equals(3);
             expect(await contractInstance.player_2_count()).to.equals(0);
         });
-        it("Should have winner", async function() {
+        it("Should have a winner", async function() {
             const secretChoice2 = CISSOR;
             const nonce2 = "0x" + crypto.randomBytes(32).toString('hex');
             const secret2 = ethers.utils.solidityKeccak256(["uint8", "bytes32"],[secretChoice2, nonce2]);
