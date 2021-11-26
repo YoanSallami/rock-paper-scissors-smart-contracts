@@ -53,7 +53,7 @@ describe("Yankenpo contract", function () {
     });
 
     describe("Matchmaking", function () {
-        it("Should start the game and emit the right event", async function() {
+        it("Should start the game", async function() {
             await expect(contractInstance.startGame({value: starting_bet}))
                          .to.emit(contractInstance, 'GameStarted')
                          .withArgs(alice.address, starting_bet);
@@ -72,7 +72,7 @@ describe("Yankenpo contract", function () {
                 .to.emit(contractInstance, 'GameCanceled')
                 .withArgs(alice.address, starting_bet);
         })
-        it("Should join the game and emit the right event", async function() {
+        it("Should join the game", async function() {
             await contractInstance.startGame({value: starting_bet});
             await expect(contractInstance.joinGame(bob.address, {value: starting_bet}))
                 .to.emit(contractInstance, 'GameReady')
@@ -212,7 +212,7 @@ describe("Yankenpo contract", function () {
         });
     });
 
-    describe("Fight (3 rounds)", function () {
+    describe("Fight (3 rounds / player 1 win)", function () {
         beforeEach(async function () {
             const secretChoice0 = ROCK;
             const nonce0 = "0x" + crypto.randomBytes(32).toString('hex');
@@ -278,6 +278,73 @@ describe("Yankenpo contract", function () {
             await contractInstanceFromBob.playRound(PAPER);
             await contractInstanceFromAlice.revealRound(CISSOR, nonce2);
             expect(await contractInstance.winner()).to.equals(alice.address);
+        });
+        it("Should withdraw the gain", async function() {
+            const secretChoice2 = CISSOR;
+            const nonce2 = "0x" + crypto.randomBytes(32).toString('hex');
+            const secret2 = ethers.utils.solidityKeccak256(["uint8", "bytes32"],[secretChoice2, nonce2]);
+            await contractInstanceFromAlice.commitRound(secret2);
+            await contractInstanceFromBob.playRound(PAPER);
+            await contractInstanceFromAlice.revealRound(CISSOR, nonce2);
+            await expect(contractInstanceFromAlice.withdrawGain())
+                         .to.emit(contractInstance, 'GainWithdrawn')
+                         .withArgs(alice.address, starting_bet*2);
+        });
+        it("Should change ethers balance", async function() {
+            const secretChoice2 = CISSOR;
+            const nonce2 = "0x" + crypto.randomBytes(32).toString('hex');
+            const secret2 = ethers.utils.solidityKeccak256(["uint8", "bytes32"],[secretChoice2, nonce2]);
+            await contractInstanceFromAlice.commitRound(secret2);
+            await contractInstanceFromBob.playRound(PAPER);
+            await contractInstanceFromAlice.revealRound(CISSOR, nonce2);
+            await expect(await contractInstanceFromAlice.withdrawGain())
+                .to.changeEtherBalance(alice, starting_bet*2);
+        });
+    });
+    describe("Fight (3 rounds / player 2 win)", function () {
+        beforeEach(async function () {
+            const secretChoice0 = PAPER;
+            const nonce0 = "0x" + crypto.randomBytes(32).toString('hex');
+            const secret0 = ethers.utils.solidityKeccak256(["uint8", "bytes32"],[secretChoice0, nonce0]);
+
+            const secretChoice1 = CISSOR;
+            const nonce1 = "0x" + crypto.randomBytes(32).toString('hex');
+            const secret1 = ethers.utils.solidityKeccak256(["uint8", "bytes32"],[secretChoice1, nonce1]);
+
+            const secretChoice2 = ROCK;
+            const nonce2 = "0x" + crypto.randomBytes(32).toString('hex');
+            const secret2 = ethers.utils.solidityKeccak256(["uint8", "bytes32"],[secretChoice2, nonce2]);
+
+            await contractInstance.startGame({value: starting_bet});
+            await contractInstance.joinGame(bob.address, {value: starting_bet});
+
+            await contractInstanceFromAlice.commitRound(secret0);
+            await contractInstanceFromBob.playRound(CISSOR);
+            await contractInstanceFromAlice.revealRound(PAPER, nonce0);
+
+            await contractInstanceFromAlice.commitRound(secret1);
+            await contractInstanceFromBob.playRound(ROCK);
+            await contractInstanceFromAlice.revealRound(CISSOR, nonce1);
+
+            await contractInstanceFromAlice.commitRound(secret2);
+            await contractInstanceFromBob.playRound(PAPER);
+            await contractInstanceFromAlice.revealRound(ROCK, nonce2);
+        });
+        it("Should have the right count", async function() {
+            expect(await contractInstance.player_1_count()).to.equals(0);
+            expect(await contractInstance.player_2_count()).to.equals(3);
+        });
+        it("Should have a winner", async function() {
+            expect(await contractInstance.winner()).to.equals(bob.address);
+        });
+        it("Should withdraw the gain", async function() {
+            await expect(contractInstanceFromBob.withdrawGain())
+                         .to.emit(contractInstance, 'GainWithdrawn')
+                         .withArgs(bob.address, starting_bet*2);
+        });
+        it("Should change ethers balance", async function() {
+            await expect(await contractInstanceFromBob.withdrawGain())
+                .to.changeEtherBalance(bob, starting_bet*2);
         });
     });
 

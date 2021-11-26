@@ -49,7 +49,6 @@ contract YankenpoFactory is Ownable, Pausable {
     games.push(game_addr);
     uint256 game_id = games.length - 1;
     uint256 commision_amount = (msg.value * commision_percent) / 100;
-    // Emit the event associated with the game creation
     Yankenpo(games[game_id]).startGame{value: msg.value - commision_amount}();
     commision += commision_amount;
     emit GameCreated(game_id, _msgSender(), msg.value);
@@ -131,7 +130,7 @@ contract YankenpoFactory is Ownable, Pausable {
   function withdrawCommision(address payable payee) public payable
     onlyOwner()
   {
-    require(commision>0, "No commision");
+    require(commision>0, "No commision to withdraw");
     uint256 payment = commision;
     commision = 0;
     payee.transfer(payment);

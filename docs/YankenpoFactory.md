@@ -12,13 +12,6 @@ In addition this contract store the commision of the platform.
 
 Smart contract constructor.
 
-### `getDeployedGames() → address[]` (public)
-
-
-
-Function that return the deployed games addresses.
-
-
 ### `createGame(bytes32 access_lock) → uint256` (public)
 
 
