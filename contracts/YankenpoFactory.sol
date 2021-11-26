@@ -33,14 +33,6 @@ contract YankenpoFactory is Ownable, Pausable {
   constructor() Pausable() Ownable() {}
 
   /**
-   * @dev Function that return the deployed games addresses.
-   * @return The deployed games addresses.
-   */
-  function getDeployedGames() public view returns (address[] memory) {
-    return games;
-  }
-
-  /**
    * @dev Function that create a new Yankenpo game.
    * @return The game index.
    */
@@ -58,8 +50,9 @@ contract YankenpoFactory is Ownable, Pausable {
     uint256 game_id = games.length - 1;
     uint256 commision_amount = (msg.value * commision_percent) / 100;
     // Emit the event associated with the game creation
-    emit GameCreated(game_id, _msgSender(), msg.value);
     Yankenpo(games[game_id]).startGame{value: msg.value - commision_amount}();
+    commision += commision_amount;
+    emit GameCreated(game_id, _msgSender(), msg.value);
     return game_id;
   }
   
@@ -76,6 +69,7 @@ contract YankenpoFactory is Ownable, Pausable {
     require(msg.value == Yankenpo(games[game_id]).starting_bet(), "Bet value not equals to starting bet");
     uint256 commision_amount = (msg.value * commision_percent) / 100;
     Yankenpo(games[game_id]).joinGame{value: msg.value - commision_amount}(_msgSender());
+    commision += commision_amount;
     emit GameJoined(game_id, _msgSender(), msg.value);
   }
 
@@ -137,6 +131,7 @@ contract YankenpoFactory is Ownable, Pausable {
   function withdrawCommision(address payable payee) public payable
     onlyOwner()
   {
+    require(commision>0, "No commision");
     uint256 payment = commision;
     commision = 0;
     payee.transfer(payment);
