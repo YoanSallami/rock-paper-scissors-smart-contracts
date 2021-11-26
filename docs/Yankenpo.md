@@ -98,7 +98,7 @@ Check that the last round is in Canceled state.
 Check that the last round is expired
 
 
-### `constructor(address player, bytes32 key, uint256 bet, uint256 time)` (public)
+### `constructor(address player, bytes32 lock, uint256 bet, uint256 time)` (public)
 
 
 

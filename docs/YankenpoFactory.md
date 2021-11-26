@@ -19,14 +19,14 @@ Smart contract constructor.
 Function that return the deployed games addresses.
 
 
-### `createGame(bytes32 access_key) → uint256` (public)
+### `createGame(bytes32 access_lock) → uint256` (public)
 
 
 
 Function that create a new Yankenpo game.
 
 
-### `joinGame(uint256 game_id, bytes32 access_nonce)` (public)
+### `joinGame(uint256 game_id, bytes32 access_key)` (public)
 
 
 
@@ -74,7 +74,13 @@ Function that withdraw the commision.
 
 
 
-### `NewGame(uint256 game_id, address game_addr, address player_1, uint256 starting_bet)`
+### `GameCreated(uint256 game_id, address player_1, uint256 starting_bet)`
+
+
+
+
+
+### `GameJoined(uint256 game_id, address player_2, uint256 starting_bet)`
 
 
 
