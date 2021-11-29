@@ -53,7 +53,7 @@ Function that set the commision percent.
 Function that set the round expirationt time.
 
 
-### `withdrawCommision()` (public)
+### `withdraw()` (public)
 
 
 

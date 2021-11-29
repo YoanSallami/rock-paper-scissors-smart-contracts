@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.8.0 <0.9.0;
 
 import './Yankenpo.sol';
@@ -15,9 +15,11 @@ contract YankenpoFactory is Ownable, Pausable {
 
   event GameCreated(uint256 game_id, address indexed player_1, uint256 starting_bet);
   event GameJoined(uint256 game_id, address indexed player_2, uint256 starting_bet);
-  event CommisionWithdrawn(address indexed payee, uint256 amount);
+  event Withdrawn(address indexed payee, uint256 amount);
 
   address[] public games;
+
+  mapping(uint256 => bytes32) private _access_lock;
 
   // Variables to manage afk players
   uint256 internal round_expiration_time = 1 hours;
@@ -36,18 +38,18 @@ contract YankenpoFactory is Ownable, Pausable {
    * @dev Function that create a new Yankenpo game.
    * @return The game index.
    */
-  function createGame(bytes32 access_lock) public payable virtual
+  function createGame(bytes32 access_lock) external payable virtual
     whenNotPaused() returns (uint256)
   {
     require(msg.value >= minimum_bet, "Bet value not enough");
     // Create the game contract and store it
     address game_addr = address(new Yankenpo(
         _msgSender(),
-        access_lock,
         msg.value,
         round_expiration_time));
     games.push(game_addr);
     uint256 game_id = games.length - 1;
+    _access_lock[game_id]=access_lock;
     uint256 commision_amount = (msg.value * commision_percent) / 100;
     Yankenpo(games[game_id]).startGame{value: msg.value - commision_amount}();
     commision += commision_amount;
@@ -60,11 +62,11 @@ contract YankenpoFactory is Ownable, Pausable {
    * @param game_id The game index.
    * @param access_key The secret used to build the access key.
    */
-  function joinGame(uint256 game_id, bytes32 access_key) public payable virtual
+  function joinGame(uint256 game_id, bytes32 access_key) external payable virtual
     whenNotPaused()
   {
     require(_msgSender() != Yankenpo(games[game_id]).player_1(), "Caller is player 1");
-    require(Yankenpo(games[game_id]).access_lock() == keccak256(abi.encodePacked(access_key)), "Access key do not match");
+    require(_access_lock[game_id] == keccak256(abi.encodePacked(access_key)), "Access key do not match");
     require(msg.value == Yankenpo(games[game_id]).starting_bet(), "Bet value not equals to starting bet");
     uint256 commision_amount = (msg.value * commision_percent) / 100;
     Yankenpo(games[game_id]).joinGame{value: msg.value - commision_amount}(_msgSender());
@@ -75,7 +77,7 @@ contract YankenpoFactory is Ownable, Pausable {
   /**
    * @dev Function that pause game creation.
    */
-  function pauseGameCreation() public
+  function pauseGameCreation() external
     onlyOwner()
     whenNotPaused()
   {
@@ -85,7 +87,7 @@ contract YankenpoFactory is Ownable, Pausable {
   /**
    * @dev Function that unpause game creation.
    */
-  function unpauseGameCreation() public
+  function unpauseGameCreation() external
     onlyOwner()
     whenPaused()
   {
@@ -96,7 +98,7 @@ contract YankenpoFactory is Ownable, Pausable {
    * @dev Function that set the minimal bet.
    * @param bet The minimum bet.
    */
-  function setMinimumBet(uint256 bet) public
+  function setMinimumBet(uint256 bet) external
     onlyOwner()
   {
     minimum_bet = bet;
@@ -106,7 +108,7 @@ contract YankenpoFactory is Ownable, Pausable {
    * @dev Function that set the commision percent.
    * @param percent The commision percent.
    */
-  function setCommisionPercent(uint8 percent) public
+  function setCommisionPercent(uint8 percent) external
     onlyOwner()
   {
     require(percent>0 && percent <=100, "Invalid commision percent");
@@ -117,7 +119,7 @@ contract YankenpoFactory is Ownable, Pausable {
    * @dev Function that set the round expirationt time.
    * @param time The expiration time.
    */
-  function setRoundExpirationTime(uint256 time) public
+  function setRoundExpirationTime(uint256 time) external
     onlyOwner()
   {
     round_expiration_time = time;
@@ -127,14 +129,14 @@ contract YankenpoFactory is Ownable, Pausable {
    * @dev Function that withdraw the commision.
    * @param payee The payee address.
    */
-  function withdrawCommision(address payable payee) public payable
+  function withdraw(address payable payee) external payable
     onlyOwner()
   {
     require(commision>0, "No commision to withdraw");
     uint256 payment = commision;
     commision = 0;
     payee.transfer(payment);
-    emit CommisionWithdrawn(payee, payment);
+    emit Withdrawn(payee, payment);
   }
 
 }

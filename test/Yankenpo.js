@@ -15,12 +15,10 @@ describe("Yankenpo contract", function () {
     let bob;
     let max;
 
-    const ROCK = 0;
-    const PAPER = 1;
-    const CISSOR = 2;
-
-    const access_nonce = "0x" + crypto.randomBytes(32).toString('hex');
-    const access_key = ethers.utils.solidityKeccak256(["bytes32"], [access_nonce]);
+    const UNKNOWN = 0; 
+    const ROCK = 1;
+    const PAPER = 2;
+    const CISSOR = 3;
 
     const starting_bet = 300000;
     const round_expiration_time = 60*60*5;
@@ -30,7 +28,7 @@ describe("Yankenpo contract", function () {
 
         [owner, alice, bob, max] = await ethers.getSigners();
 
-        contractInstance = await Yankenpo.deploy(alice.address, access_key, starting_bet, round_expiration_time);
+        contractInstance = await Yankenpo.deploy(alice.address, starting_bet, round_expiration_time);
 
         contractInstanceFromAlice = contractInstance.connect(alice);
         contractInstanceFromBob = contractInstance.connect(bob);
@@ -286,8 +284,8 @@ describe("Yankenpo contract", function () {
             await contractInstanceFromAlice.commitRound(secret2);
             await contractInstanceFromBob.playRound(PAPER);
             await contractInstanceFromAlice.revealRound(CISSOR, nonce2);
-            await expect(contractInstanceFromAlice.withdrawGain())
-                         .to.emit(contractInstance, 'GainWithdrawn')
+            await expect(contractInstanceFromAlice.withdraw())
+                         .to.emit(contractInstance, 'Withdrawn')
                          .withArgs(alice.address, starting_bet*2);
         });
         it("Should change ethers balance", async function() {
@@ -297,7 +295,7 @@ describe("Yankenpo contract", function () {
             await contractInstanceFromAlice.commitRound(secret2);
             await contractInstanceFromBob.playRound(PAPER);
             await contractInstanceFromAlice.revealRound(CISSOR, nonce2);
-            await expect(await contractInstanceFromAlice.withdrawGain())
+            await expect(await contractInstanceFromAlice.withdraw())
                 .to.changeEtherBalance(alice, starting_bet*2);
         });
     });
@@ -338,12 +336,12 @@ describe("Yankenpo contract", function () {
             expect(await contractInstance.winner()).to.equals(bob.address);
         });
         it("Should withdraw the gain", async function() {
-            await expect(contractInstanceFromBob.withdrawGain())
-                         .to.emit(contractInstance, 'GainWithdrawn')
+            await expect(contractInstanceFromBob.withdraw())
+                         .to.emit(contractInstance, 'Withdrawn')
                          .withArgs(bob.address, starting_bet*2);
         });
         it("Should change ethers balance", async function() {
-            await expect(await contractInstanceFromBob.withdrawGain())
+            await expect(await contractInstanceFromBob.withdraw())
                 .to.changeEtherBalance(bob, starting_bet*2);
         });
     });

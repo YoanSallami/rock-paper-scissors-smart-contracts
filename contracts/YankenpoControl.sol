@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.8.0 <0.9.0;
 
 import "./YankenpoFactory.sol";
@@ -87,10 +87,10 @@ contract YankenpoControl is AccessControl {
     /**
      * @dev Function that withdraw the commision.
      */
-    function withdrawCommision() public payable
+    function withdraw() public payable
         onlyRole(TREASURER_ROLE)
     {
-        YankenpoFactory(factory).withdrawCommision(payable(_msgSender()));
+        YankenpoFactory(factory).withdraw(payable(_msgSender()));
     }
 
 }

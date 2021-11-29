@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0
 pragma solidity >=0.8.0 <0.9.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -23,8 +23,7 @@ contract Yankenpo is Ownable {
   event GameFinished(address indexed winner, address indexed looser);
   event GameCanceled(address indexed player_1, uint256 pending_bet);
 
-  event BetWithdrawn(address indexed player_1, uint256 bet);
-  event GainWithdrawn(address indexed winner, uint256 gain);
+  event Withdrawn(address indexed payee, uint256 amount);
 
   // Variables for the addresses used
   address public player_1;
@@ -34,8 +33,6 @@ contract Yankenpo is Ownable {
   // Variables for the bet
   uint public starting_bet;
   uint public pending_bet;
-
-  bytes32 public access_lock;
   
   // Enum for the machine states
   enum State
@@ -51,9 +48,10 @@ contract Yankenpo is Ownable {
   State private _state;
 
   // Constants for the game mechanics 
-  uint8 constant ROCK = 0;
-  uint8 constant PAPER = 1;
-  uint8 constant CISSOR = 2;
+  uint8 constant UNKNOWN = 0;
+  uint8 constant ROCK = 1;
+  uint8 constant PAPER = 2;
+  uint8 constant CISSOR = 3;
 
   // Count for win condition
   uint public player_1_count = 0;
@@ -79,13 +77,11 @@ contract Yankenpo is Ownable {
    * @param time The round expiration time.
    */
   constructor(address player,
-              bytes32 lock,
               uint256 bet,
               uint256 time)
     Ownable()
   {
     player_1 = player;
-    access_lock = lock;
     starting_bet = bet;
     round_expiration_time = time;
     _state = State.Created;
@@ -211,43 +207,43 @@ contract Yankenpo is Ownable {
     _;
   }
 
-  function isGameCreated() public view returns (bool) {
+  function isGameCreated() external view returns (bool) {
     return (_state == State.Created);
   }
 
-  function isGameStarted() public view returns (bool) {
+  function isGameStarted() external view returns (bool) {
     return (_state == State.Started);
   }
 
-  function isGameReady() public view returns (bool) {
+  function isGameReady() external view returns (bool) {
     return (_state == State.Ready);
   }
 
-  function isGameFinished() public view returns (bool) {
+  function isGameFinished() external view returns (bool) {
     return (_state == State.Finished);
   }
 
-  function isGameCanceled() public view returns (bool) {
+  function isGameCanceled() external view returns (bool) {
     return (_state == State.Canceled);
   }
 
-  function isRoundCreated() public view returns (bool) {
+  function isRoundCreated() external view returns (bool) {
     return (_getLastRound().state == State.Created);
   }
 
-  function isRoundStarted() public view returns (bool) {
+  function isRoundStarted() external view returns (bool) {
     return (_getLastRound().state == State.Started);
   }
 
-  function isRoundReady() public view returns (bool) {
+  function isRoundReady() external view returns (bool) {
     return (_getLastRound().state == State.Ready);
   }
 
-  function isRoundFinished() public view returns (bool) {
+  function isRoundFinished() external view returns (bool) {
     return (_getLastRound().state == State.Finished);
   }
 
-  function isRoundCanceled() public view returns (bool) {
+  function isRoundCanceled() external view returns (bool) {
     return (_getLastRound().state == State.Canceled);
   }
 
@@ -295,7 +291,7 @@ contract Yankenpo is Ownable {
    * @dev Start the game by getting the first part of the bet,
    * only player factory contract should start the game.
    */
-  function startGame() public virtual payable
+  function startGame() external virtual payable
     onlyOwner()
     whenCreated()
   {
@@ -308,7 +304,7 @@ contract Yankenpo is Ownable {
    * @dev Function to join the game by getting the second part of the bet.
    * @param player The player 2 address.
    */
-  function joinGame(address player) public virtual payable
+  function joinGame(address player) external virtual payable
     onlyOwner()
     whenStarted()
   {
@@ -323,7 +319,7 @@ contract Yankenpo is Ownable {
    * @dev Function that cancel the game if nobody joined it and get back the bet.
    * Only player 1 should be able to cancel the game.
    */
-  function cancelGame() public virtual
+  function cancelGame() external virtual
     onlyPlayer1()
     whenStarted()
   {
@@ -335,7 +331,7 @@ contract Yankenpo is Ownable {
    * @dev Function commit the player 1 choice as a secret.
    * Only player 1 should be able to commit.
    */
-  function commitRound(bytes32 commitment) public
+  function commitRound(bytes32 commitment) external
     onlyPlayer1()
     whenReady()
     whenRoundCreated()
@@ -350,7 +346,7 @@ contract Yankenpo is Ownable {
    * Only player 2 should be able to play.
    * @param choice the choice made by player 2
    */
-  function playRound(uint8 choice) public
+  function playRound(uint8 choice) external
     onlyPlayer2()
     whenReady()
     whenRoundStarted()
@@ -367,7 +363,7 @@ contract Yankenpo is Ownable {
    * @param choice The choice made by player 1.
    * @param nonce The nonce used to create the secret.
    */
-  function revealRound(uint8 choice, bytes32 nonce) public
+  function revealRound(uint8 choice, bytes32 nonce) external
     onlyPlayer1()
     whenReady()
     whenRoundReady()
@@ -403,7 +399,7 @@ contract Yankenpo is Ownable {
    * @dev Function that claim the round if player 1 do not reveal his secret,
    * only player 2 can claim the round.
    */
-  function claimRoundTimeout() public
+  function claimRoundTimeout() external
     onlyPlayer2()
     whenReady()
     whenRoundExpired()
@@ -418,29 +414,25 @@ contract Yankenpo is Ownable {
   }
 
   /**
-   * @dev Withdraw the bet if game canceled, only the player 1 should withdraw.
+   * @dev Withdraw the bet.
    */
-  function withdrawBet() public virtual payable
-    onlyPlayer1()
-    whenCanceled()
-  {
-    uint payment = pending_bet;
-    pending_bet = 0;
-    payable(player_1).transfer(payment);
-    emit BetWithdrawn(player_1, payment);
-  }
-
-  /**
-   * @dev Withdraw the bet, only the winner should withdraw.
-   */
-  function withdrawGain() public virtual payable
+  function withdraw() external virtual payable
     onlyWinner()
     whenFinished()
   {
+    require( _state == State.Canceled || _state == State.Finished);
+    address payee;
+    if (_state == State.Canceled) {
+      require (_msgSender() == player_1);
+      payee = player_1;
+    } else {
+      require (_msgSender() == winner);
+      payee = winner;
+    }
     uint256 payment = pending_bet;
     pending_bet = 0;
-    payable(winner).transfer(payment);
-    emit GainWithdrawn(winner, payment);
+    payable(payee).transfer(payment);
+    emit Withdrawn(payee, payment);
   }
 
 }

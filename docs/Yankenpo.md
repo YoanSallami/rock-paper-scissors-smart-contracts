@@ -98,102 +98,102 @@ Check that the last round is in Canceled state.
 Check that the last round is expired
 
 
-### `constructor(address player, bytes32 lock, uint256 bet, uint256 time)` (public)
+### `constructor(address player, uint256 bet, uint256 time)` (public)
 
 
 
 Smart contract constructor.
 
 
-### `isGameCreated() → bool` (public)
+### `isGameCreated() → bool` (external)
 
 
 
 
 
-### `isGameStarted() → bool` (public)
+### `isGameStarted() → bool` (external)
 
 
 
 
 
-### `isGameReady() → bool` (public)
+### `isGameReady() → bool` (external)
 
 
 
 
 
-### `isGameFinished() → bool` (public)
+### `isGameFinished() → bool` (external)
 
 
 
 
 
-### `isGameCanceled() → bool` (public)
+### `isGameCanceled() → bool` (external)
 
 
 
 
 
-### `isRoundCreated() → bool` (public)
+### `isRoundCreated() → bool` (external)
 
 
 
 
 
-### `isRoundStarted() → bool` (public)
+### `isRoundStarted() → bool` (external)
 
 
 
 
 
-### `isRoundReady() → bool` (public)
+### `isRoundReady() → bool` (external)
 
 
 
 
 
-### `isRoundFinished() → bool` (public)
+### `isRoundFinished() → bool` (external)
 
 
 
 
 
-### `isRoundCanceled() → bool` (public)
+### `isRoundCanceled() → bool` (external)
 
 
 
 
 
-### `startGame()` (public)
+### `startGame()` (external)
 
 
 
 Start the game by getting the first part of the bet,
 only player factory contract should start the game.
 
-### `joinGame(address player)` (public)
+### `joinGame(address player)` (external)
 
 
 
 Function to join the game by getting the second part of the bet.
 
 
-### `cancelGame()` (public)
+### `cancelGame()` (external)
 
 
 
 Function that cancel the game if nobody joined it and get back the bet.
 Only player 1 should be able to cancel the game.
 
-### `commitRound(bytes32 commitment)` (public)
+### `commitRound(bytes32 commitment)` (external)
 
 
 
 Function commit the player 1 choice as a secret.
 Only player 1 should be able to commit.
 
-### `playRound(uint8 choice)` (public)
+### `playRound(uint8 choice)` (external)
 
 
 
@@ -201,7 +201,7 @@ Function that play against the player 1 by making a choice.
 Only player 2 should be able to play.
 
 
-### `revealRound(uint8 choice, bytes32 nonce)` (public)
+### `revealRound(uint8 choice, bytes32 nonce)` (external)
 
 
 
@@ -209,24 +209,18 @@ Function that reveal the secret choice made by player 1 and create
 a new round if needed, only player 1 should reveal.
 
 
-### `claimRoundTimeout()` (public)
+### `claimRoundTimeout()` (external)
 
 
 
 Function that claim the round if player 1 do not reveal his secret,
 only player 2 can claim the round.
 
-### `withdrawBet()` (public)
+### `withdraw()` (external)
 
 
 
-Withdraw the bet if game canceled, only the player 1 should withdraw.
-
-### `withdrawGain()` (public)
-
-
-
-Withdraw the bet, only the winner should withdraw.
+Withdraw the bet.
 
 
 ### `NewRound(uint256 round_id, address player_1, address player_2)`
@@ -283,13 +277,7 @@ Withdraw the bet, only the winner should withdraw.
 
 
 
-### `BetWithdrawn(address player_1, uint256 bet)`
-
-
-
-
-
-### `GainWithdrawn(address winner, uint256 gain)`
+### `Withdrawn(address payee, uint256 amount)`
 
 
 

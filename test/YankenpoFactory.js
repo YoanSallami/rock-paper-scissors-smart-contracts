@@ -73,17 +73,17 @@ describe("YankenpoFactory contract", function () {
             await expect(contractInstanceFromBob.joinGame(0, bad_access_key, {value: starting_bet}))
                          .to.be.revertedWith("Access key do not match");
         });
-        it("Should be able to withdraw the commision", async function() {
+        it("Should withdraw the commision", async function() {
             await contractInstanceFromAlice.createGame(access_lock, {value: starting_bet});
             await contractInstanceFromBob.joinGame(0, access_key, {value: starting_bet});
-            await expect(contractInstance.withdrawCommision(owner.address))
-                         .to.emit(contractInstance, 'CommisionWithdrawn')
+            await expect(contractInstance.withdraw(owner.address))
+                         .to.emit(contractInstance, 'Withdrawn')
                          .withArgs(owner.address, ((starting_bet*7)/100)+((starting_bet*7)/100));
         });
         it("Should change ethers balance", async function() {
             await contractInstanceFromAlice.createGame(access_lock, {value: starting_bet});
             await contractInstanceFromBob.joinGame(0, access_key, {value: starting_bet});
-            await expect(await contractInstance.withdrawCommision(owner.address))
+            await expect(await contractInstance.withdraw(owner.address))
                 .to.changeEtherBalance(owner, ((starting_bet*7)/100)+((starting_bet*7)/100));
         });
         
