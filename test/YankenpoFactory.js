@@ -16,12 +16,12 @@ describe("YankenpoFactory contract", function () {
     let bob;
     let max;
 
-    const starting_bet = 3000000;
+    const startingBet = 3000000;
 
-    const access_key = "0x" + crypto.randomBytes(32).toString('hex');
-    const access_lock = ethers.utils.solidityKeccak256(["bytes32"], [access_key]);
+    const accessKey = "0x" + crypto.randomBytes(32).toString('hex');
+    const accessLock = ethers.utils.solidityKeccak256(["bytes32"], [accessKey]);
 
-    const bad_access_key = "0x" + crypto.randomBytes(32).toString('hex');
+    const bad_accessKey = "0x" + crypto.randomBytes(32).toString('hex');
 
     beforeEach(async function () {
         YankenpoFactory = await ethers.getContractFactory("YankenpoFactory");
@@ -42,49 +42,49 @@ describe("YankenpoFactory contract", function () {
         it("Should be unpaused", async function() {
             expect(await contractInstance.paused()).to.equal(false);
         });
-        it("Should have the right commision percent", async function() {
-            expect(await contractInstance.commision_percent()).to.equal(7);
+        it("Should have the right commission percent", async function() {
+            expect(await contractInstance.commissionPercent()).to.equal(7);
         });
     });
 
     describe("Matchmaking", function () {
         it("Should create the game", async function() {
-            await expect(contractInstanceFromAlice.createGame(access_lock, {value: starting_bet}))
+            await expect(contractInstanceFromAlice.createGame(accessLock, {value: startingBet}))
                          .to.emit(contractInstance, 'GameCreated')
-                         .withArgs(0, alice.address, starting_bet);
+                         .withArgs(0, alice.address, startingBet);
         });
-        it("Should have the right commision after creation", async function() {
-            await contractInstanceFromAlice.createGame(access_lock, {value: starting_bet});
-            expect(await contractInstance.commision()).to.equal((starting_bet*7)/100);
+        it("Should have the right commission after creation", async function() {
+            await contractInstanceFromAlice.createGame(accessLock, {value: startingBet});
+            expect(await contractInstance.commission()).to.equal((startingBet*7)/100);
         });
         it("Should join the game", async function() {
-            await contractInstanceFromAlice.createGame(access_lock, {value: starting_bet});
-            await expect(contractInstanceFromBob.joinGame(0, access_key, {value: starting_bet}))
+            await contractInstanceFromAlice.createGame(accessLock, {value: startingBet});
+            await expect(contractInstanceFromBob.joinGame(0, accessKey, {value: startingBet}))
                          .to.emit(contractInstance, 'GameJoined')
-                         .withArgs(0, bob.address, starting_bet);
+                         .withArgs(0, bob.address, startingBet);
         });
-        it("Should have the right commision after joining", async function() {
-            await contractInstanceFromAlice.createGame(access_lock, {value: starting_bet});
-            await contractInstanceFromBob.joinGame(0, access_key, {value: starting_bet});
-            expect(await contractInstance.commision()).to.equal(((starting_bet*7)/100)+((starting_bet*7)/100));
+        it("Should have the right commission after joining", async function() {
+            await contractInstanceFromAlice.createGame(accessLock, {value: startingBet});
+            await contractInstanceFromBob.joinGame(0, accessKey, {value: startingBet});
+            expect(await contractInstance.commission()).to.equal(((startingBet*7)/100)+((startingBet*7)/100));
         });
         it("Should not join the game (bad access key)", async function() {
-            await contractInstanceFromAlice.createGame(access_lock, {value: starting_bet});
-            await expect(contractInstanceFromBob.joinGame(0, bad_access_key, {value: starting_bet}))
+            await contractInstanceFromAlice.createGame(accessLock, {value: startingBet});
+            await expect(contractInstanceFromBob.joinGame(0, bad_accessKey, {value: startingBet}))
                          .to.be.revertedWith("Access key do not match");
         });
-        it("Should withdraw the commision", async function() {
-            await contractInstanceFromAlice.createGame(access_lock, {value: starting_bet});
-            await contractInstanceFromBob.joinGame(0, access_key, {value: starting_bet});
+        it("Should withdraw the commission", async function() {
+            await contractInstanceFromAlice.createGame(accessLock, {value: startingBet});
+            await contractInstanceFromBob.joinGame(0, accessKey, {value: startingBet});
             await expect(contractInstance.withdraw(owner.address))
                          .to.emit(contractInstance, 'Withdrawn')
-                         .withArgs(owner.address, ((starting_bet*7)/100)+((starting_bet*7)/100));
+                         .withArgs(owner.address, ((startingBet*7)/100)+((startingBet*7)/100));
         });
         it("Should change ethers balance", async function() {
-            await contractInstanceFromAlice.createGame(access_lock, {value: starting_bet});
-            await contractInstanceFromBob.joinGame(0, access_key, {value: starting_bet});
+            await contractInstanceFromAlice.createGame(accessLock, {value: startingBet});
+            await contractInstanceFromBob.joinGame(0, accessKey, {value: startingBet});
             await expect(await contractInstance.withdraw(owner.address))
-                .to.changeEtherBalance(owner, ((starting_bet*7)/100)+((starting_bet*7)/100));
+                .to.changeEtherBalance(owner, ((startingBet*7)/100)+((startingBet*7)/100));
         });
         
     });

@@ -25,8 +25,8 @@ contract YankenpoFactory is Ownable, Pausable {
   uint256 internal roundExpirationTime = 1 hours;
 
   // Variables for the business model
-  uint256 public minimum_bet;
-  uint8 public commissionPercent = 7*10;
+  uint256 public minimumBet;
+  uint8 public commissionPercent = 7;
   uint256 public commission;
 
   /**
@@ -41,7 +41,7 @@ contract YankenpoFactory is Ownable, Pausable {
   function createGame(bytes32 accessLock) external payable virtual
     whenNotPaused() returns (uint256)
   {
-    require(msg.value >= minimum_bet, "Bet value not enough");
+    require(msg.value >= minimumBet, "Bet value not enough");
     // Create the game contract and store it
     address game_addr = address(new Yankenpo(
         _msgSender(),
@@ -68,7 +68,7 @@ contract YankenpoFactory is Ownable, Pausable {
     require(_msgSender() != Yankenpo(games[gameID]).player1(), "Caller is player 1");
     require(_accessLock[gameID] == keccak256(abi.encodePacked(access_key)), "Access key do not match");
     require(msg.value == Yankenpo(games[gameID]).startingBet(), "Bet value not equals to starting bet");
-    uint256 commissionAmount = (msg.value * commissionPercent) / 100*10;
+    uint256 commissionAmount = (msg.value * commissionPercent) / 100;
     Yankenpo(games[gameID]).joinGame{value: msg.value - commissionAmount}(_msgSender());
     commission += commissionAmount;
     emit GameJoined(gameID, _msgSender(), msg.value);
@@ -101,13 +101,12 @@ contract YankenpoFactory is Ownable, Pausable {
   function setMinimumBet(uint256 bet) external
     onlyOwner()
   {
-    minimum_bet = bet;
+    minimumBet = bet;
   }
 
   /**
    * @dev Function that set the commission percent.
-   * @param percent The commission percent. 
-   * Note: commision percent is defined with e^10 decimals.
+   * @param percent The commission percent.
    */
   function setCommissionPercent(uint8 percent) external
     onlyOwner()
