@@ -31,7 +31,7 @@ yarn serve
 In another shell:
 
 ```
-yarn deploy --network localhost
+yarn deploy
 ```
 
 # Connect to the local network with MetaMask
@@ -41,7 +41,7 @@ First, click on `Add Network` then, create a custom network with the following p
 - Network Name: `Hardhat`
 - New RPC URL: `http://127.0.0.1:8545`
 - Chain ID: `31337`
-- Currency Symbol: `ETH`
+- Currency Symbol: `BNB`
 
 To import a test account in metamask:
 

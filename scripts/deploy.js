@@ -5,8 +5,11 @@ async function main() {
   
     console.log("Account balance:", (await deployer.getBalance()).toString());
   
-    const YankenpoFactory = await ethers.getContractFactory("YankenpoFactory");
-    const contractInstance = await YankenpoFactory.deploy();
+    //const YankenpoFactory = await ethers.getContractFactory("YankenpoFactory");
+    //const contractInstance = await YankenpoFactory.deploy();
+
+    const YankenpoControl = await ethers.getContractFactory("YankenpoControl");
+    const contractInstance = await YankenpoControl.deploy();
   
     console.log("Contract address:", contractInstance.address);
   }

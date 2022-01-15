@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "main": "index.js",
   "repository": "https://github.com/doxa-games-studio/yankenpo-smart-contracts.git",
-  "author": "YoanSallami <sallami.yoan@gmail.com>",
-  "license": "GPL-3.0",
+  "author": "DoxaGames",
+  "license": "MIT",
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.2",
     "@nomiclabs/hardhat-waffle": "^2.0.1",
@@ -12,6 +12,7 @@
     "ethereum-waffle": "^3.4.0",
     "ethers": "^5.5.1",
     "hardhat": "^2.7.0",
+    "hardhat-contract-sizer": "^2.1.1",
     "solc-0.8": "npm:solc@^0.8.0",
     "solidity-docgen": "^0.5.16"
   },
@@ -23,6 +24,7 @@
     "test": "hardhat test",
     "deploy": "hardhat run scripts/deploy.js --network localhost",
     "serve": "hardhat node",
-    "docgen": "solidity-docgen --solc-module solc-0.8"
+    "docgen": "solidity-docgen --solc-module solc-0.8",
+    "size-contracts": "yarn run hardhat size-contracts"
   }
 }

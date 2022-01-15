@@ -12,27 +12,27 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  */
 contract Yankenpo is Ownable {
 
-  event NewRound(uint round_id, address indexed player_1, address indexed player_2);
-  event RoundCommited(uint256 round_id, address indexed player_1, address indexed player_2);
-  event RoundPlayed(uint256 round_id, address indexed player_1, address indexed player_2);
-  event RoundRevealed(uint256 round_id, address indexed player_1, address indexed player_2);
-  event RoundTimeout(uint256 round_id, address indexed player_1, address indexed player_2);
+  event NewRound(uint round_id, address indexed player1, address indexed player2);
+  event RoundCommited(uint256 round_id, address indexed player1, address indexed player2);
+  event RoundPlayed(uint256 round_id, address indexed player1, address indexed player2);
+  event RoundRevealed(uint256 round_id, address indexed player1, address indexed player2);
+  event RoundTimeout(uint256 round_id, address indexed player1, address indexed player2);
 
-  event GameStarted(address indexed player_1, uint256 pending_bet);
-  event GameReady(address indexed player_1, address indexed player_2, uint256 pending_bet);
+  event GameStarted(address indexed player1, uint256 pendingBet);
+  event GameReady(address indexed player1, address indexed player2, uint256 pendingBet);
   event GameFinished(address indexed winner, address indexed looser);
-  event GameCanceled(address indexed player_1, uint256 pending_bet);
+  event GameCanceled(address indexed player1, uint256 pendingBet);
 
   event Withdrawn(address indexed payee, uint256 amount);
 
   // Variables for the addresses used
-  address public player_1;
-  address public player_2;
+  address public player1;
+  address public player2;
   address public winner;
   
   // Variables for the bet
-  uint public starting_bet;
-  uint public pending_bet;
+  uint public startingBet;
+  uint public pendingBet;
   
   // Enum for the machine states
   enum State
@@ -54,8 +54,8 @@ contract Yankenpo is Ownable {
   uint8 constant CISSOR = 3;
 
   // Count for win condition
-  uint public player_1_count = 0;
-  uint public player_2_count = 0;
+  uint public player1Count = 0;
+  uint public player2Count = 0;
 
   struct Round {
     State state;
@@ -67,8 +67,8 @@ contract Yankenpo is Ownable {
   Round[] public rounds;
 
   // Variables to manage afk players
-  uint256 public round_expiration = 2**256-1;
-  uint256 public round_expiration_time;
+  uint256 public roundExpiration = 2**256-1;
+  uint256 public roundExpirationTime;
   
   /**
    * @dev Smart contract constructor.
@@ -81,9 +81,9 @@ contract Yankenpo is Ownable {
               uint256 time)
     Ownable()
   {
-    player_1 = player;
-    starting_bet = bet;
-    round_expiration_time = time;
+    player1 = player;
+    startingBet = bet;
+    roundExpirationTime = time;
     _state = State.Created;
   }
 
@@ -91,7 +91,7 @@ contract Yankenpo is Ownable {
    * @dev Check that the caller is player 1.
    */
   modifier onlyPlayer1() {
-    require(_msgSender() == player_1, "Caller is not player 1");
+    require(_msgSender() == player1, "Caller is not player 1");
     _;
   }
 
@@ -99,7 +99,7 @@ contract Yankenpo is Ownable {
    * @dev Check that the caller is not player 1.
    */
   modifier isNotPlayer1() {
-    require(_msgSender() != player_1, "Caller is player 1");
+    require(_msgSender() != player1, "Caller is player 1");
     _;
   }
 
@@ -107,7 +107,7 @@ contract Yankenpo is Ownable {
    * @dev Check that the caller is player 2.
    */
   modifier onlyPlayer2() {
-    require(_msgSender() == player_2, "Caller is not player 2");
+    require(_msgSender() == player2, "Caller is not player 2");
     _;
   }
 
@@ -203,7 +203,7 @@ contract Yankenpo is Ownable {
    * @dev Check that the last round is expired
    */
   modifier whenRoundExpired() {
-    require(block.timestamp >= round_expiration, "Last round is not expired");
+    require(_getLastRound().state == State.Ready && block.timestamp >= roundExpiration, "Last round is not expired");
     _;
   }
 
@@ -260,15 +260,15 @@ contract Yankenpo is Ownable {
    */
   function _updateWinner() private returns (bool)
   {
-    if (player_1_count > player_2_count && player_1_count - player_2_count >= 3) {
-      winner = player_1;
+    if (player1Count > player2Count && player1Count - player2Count >= 3) {
+      winner = player1;
       _state = State.Finished;
-      emit GameFinished(winner, player_2);
+      emit GameFinished(winner, player2);
       return true;
-    } else if (player_2_count > player_1_count && player_2_count - player_1_count >= 3) {
-      winner = player_2;
+    } else if (player2Count > player1Count && player2Count - player1Count >= 3) {
+      winner = player2;
       _state = State.Finished;
-      emit GameFinished(winner, player_1);
+      emit GameFinished(winner, player1);
       return true;
     } else {
       return false;
@@ -283,7 +283,7 @@ contract Yankenpo is Ownable {
       // Create a new round
     rounds.push(Round(State.Created, 0, 0));
     uint256 round_id = rounds.length - 1;
-    emit NewRound(round_id, player_1, player_2);
+    emit NewRound(round_id, player1, player2);
     return round_id;
   }
 
@@ -295,9 +295,9 @@ contract Yankenpo is Ownable {
     onlyOwner()
     whenCreated()
   {
-    pending_bet = msg.value;
+    pendingBet = msg.value;
     _state = State.Started;
-    emit GameStarted(player_1, pending_bet);
+    emit GameStarted(player1, pendingBet);
   }
 
   /**
@@ -308,11 +308,11 @@ contract Yankenpo is Ownable {
     onlyOwner()
     whenStarted()
   {
-    player_2 = player;
-    pending_bet += msg.value;
+    player2 = player;
+    pendingBet += msg.value;
     _createRound();
     _state = State.Ready;
-    emit GameReady(player_1, player_2, pending_bet);
+    emit GameReady(player1, player2, pendingBet);
   }
   
   /**
@@ -324,7 +324,7 @@ contract Yankenpo is Ownable {
     whenStarted()
   {
     _state = State.Canceled;
-    emit GameCanceled(_msgSender(), pending_bet);
+    emit GameCanceled(_msgSender(), pendingBet);
   }
   
   /**
@@ -338,7 +338,7 @@ contract Yankenpo is Ownable {
   {
     _getLastRound().commitment = commitment;
     _getLastRound().state = State.Started;
-    emit RoundCommited(rounds.length-1, player_1, player_2);
+    emit RoundCommited(rounds.length-1, player1, player2);
   }
   
   /**
@@ -352,9 +352,9 @@ contract Yankenpo is Ownable {
     whenRoundStarted()
   {
     _getLastRound().choice = choice;
-    round_expiration = block.timestamp + round_expiration_time;
+    roundExpiration = block.timestamp + roundExpirationTime;
     _getLastRound().state = State.Ready;
-    emit RoundPlayed(rounds.length-1, player_1, player_2);
+    emit RoundPlayed(rounds.length-1, player1, player2);
   }
   
   /**
@@ -373,22 +373,22 @@ contract Yankenpo is Ownable {
     require(keccak256(abi.encodePacked(choice, nonce)) == _getLastRound().commitment, "Cannot reveal, hash do not match");
     
     if(choice == ROCK && _getLastRound().choice == PAPER){
-      player_2_count += 1;
+      player2Count += 1;
     } else if(choice == ROCK && _getLastRound().choice == CISSOR){
-      player_1_count += 1;
+      player1Count += 1;
     } else if(choice == PAPER && _getLastRound().choice == ROCK){
-      player_1_count += 1;
+      player1Count += 1;
     } else if(choice == PAPER && _getLastRound().choice == CISSOR){
-      player_2_count += 1;
+      player2Count += 1;
     } else if(choice == CISSOR && _getLastRound().choice == ROCK){
-      player_2_count += 1;
+      player2Count += 1;
     } else if(choice == CISSOR && _getLastRound().choice == PAPER){
-      player_1_count += 1;
+      player1Count += 1;
     } else {
         // Nothing to do
     }
     _getLastRound().state = State.Finished;
-    emit RoundRevealed(rounds.length-1, player_1, player_2);
+    emit RoundRevealed(rounds.length-1, player1, player2);
     if (_updateWinner() == false) {
       // Then continue the game by creating a new round
       _createRound();
@@ -404,9 +404,9 @@ contract Yankenpo is Ownable {
     whenReady()
     whenRoundExpired()
   {
-    player_2_count += 1;
+    player2Count += 1;
     _getLastRound().state = State.Canceled;
-    emit RoundTimeout(rounds.length-1, player_1, player_2);
+    emit RoundTimeout(rounds.length-1, player1, player2);
     if (_updateWinner() == false) {
       // Then continue the game by creating a new round
       _createRound();
@@ -417,20 +417,19 @@ contract Yankenpo is Ownable {
    * @dev Withdraw the bet.
    */
   function withdraw() external virtual payable
-    onlyWinner()
     whenFinished()
   {
     require( _state == State.Canceled || _state == State.Finished);
     address payee;
     if (_state == State.Canceled) {
-      require (_msgSender() == player_1);
-      payee = player_1;
+      require (_msgSender() == player1);
+      payee = player1;
     } else {
       require (_msgSender() == winner);
       payee = winner;
     }
-    uint256 payment = pending_bet;
-    pending_bet = 0;
+    uint256 payment = pendingBet;
+    pendingBet = 0;
     payable(payee).transfer(payment);
     emit Withdrawn(payee, payment);
   }

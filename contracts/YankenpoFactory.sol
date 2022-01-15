@@ -8,26 +8,26 @@ import "@openzeppelin/contracts/security/Pausable.sol";
 
 /**
  * @title YankenpoFactory
- * @dev The factory smart contract that manage Rock-Paper-Cissor games.
- * In addition this contract store the commision of the platform.
+ * @dev The factory smart contract that manage Yankenpo (Rock-Paper-Cissor) games.
+ * In addition this contract store the commission of the platform.
  */
 contract YankenpoFactory is Ownable, Pausable {
 
-  event GameCreated(uint256 game_id, address indexed player_1, uint256 starting_bet);
-  event GameJoined(uint256 game_id, address indexed player_2, uint256 starting_bet);
+  event GameCreated(uint256 gameID, address indexed player1, uint256 startingBet);
+  event GameJoined(uint256 gameID, address indexed player2, uint256 startingBet);
   event Withdrawn(address indexed payee, uint256 amount);
 
   address[] public games;
 
-  mapping(uint256 => bytes32) private _access_lock;
+  mapping(uint256 => bytes32) private _accessLock;
 
   // Variables to manage afk players
-  uint256 internal round_expiration_time = 1 hours;
+  uint256 internal roundExpirationTime = 1 hours;
 
   // Variables for the business model
   uint256 public minimum_bet;
-  uint8 public commision_percent = 7;
-  uint256 public commision;
+  uint8 public commissionPercent = 7*10;
+  uint256 public commission;
 
   /**
    * @dev Smart contract constructor.
@@ -38,7 +38,7 @@ contract YankenpoFactory is Ownable, Pausable {
    * @dev Function that create a new Yankenpo game.
    * @return The game index.
    */
-  function createGame(bytes32 access_lock) external payable virtual
+  function createGame(bytes32 accessLock) external payable virtual
     whenNotPaused() returns (uint256)
   {
     require(msg.value >= minimum_bet, "Bet value not enough");
@@ -46,32 +46,32 @@ contract YankenpoFactory is Ownable, Pausable {
     address game_addr = address(new Yankenpo(
         _msgSender(),
         msg.value,
-        round_expiration_time));
+        roundExpirationTime));
     games.push(game_addr);
-    uint256 game_id = games.length - 1;
-    _access_lock[game_id]=access_lock;
-    uint256 commision_amount = (msg.value * commision_percent) / 100;
-    Yankenpo(games[game_id]).startGame{value: msg.value - commision_amount}();
-    commision += commision_amount;
-    emit GameCreated(game_id, _msgSender(), msg.value);
-    return game_id;
+    uint256 gameID = games.length - 1;
+    _accessLock[gameID] = accessLock;
+    uint256 commissionAmount = (msg.value * commissionPercent) / 100;
+    Yankenpo(games[gameID]).startGame{value: msg.value - commissionAmount}();
+    commission += commissionAmount;
+    emit GameCreated(gameID, _msgSender(), msg.value);
+    return gameID;
   }
   
   /**
    * @dev Function that join an already created game.
-   * @param game_id The game index.
+   * @param gameID The game index.
    * @param access_key The secret used to build the access key.
    */
-  function joinGame(uint256 game_id, bytes32 access_key) external payable virtual
+  function joinGame(uint256 gameID, bytes32 access_key) external payable virtual
     whenNotPaused()
   {
-    require(_msgSender() != Yankenpo(games[game_id]).player_1(), "Caller is player 1");
-    require(_access_lock[game_id] == keccak256(abi.encodePacked(access_key)), "Access key do not match");
-    require(msg.value == Yankenpo(games[game_id]).starting_bet(), "Bet value not equals to starting bet");
-    uint256 commision_amount = (msg.value * commision_percent) / 100;
-    Yankenpo(games[game_id]).joinGame{value: msg.value - commision_amount}(_msgSender());
-    commision += commision_amount;
-    emit GameJoined(game_id, _msgSender(), msg.value);
+    require(_msgSender() != Yankenpo(games[gameID]).player1(), "Caller is player 1");
+    require(_accessLock[gameID] == keccak256(abi.encodePacked(access_key)), "Access key do not match");
+    require(msg.value == Yankenpo(games[gameID]).startingBet(), "Bet value not equals to starting bet");
+    uint256 commissionAmount = (msg.value * commissionPercent) / 100*10;
+    Yankenpo(games[gameID]).joinGame{value: msg.value - commissionAmount}(_msgSender());
+    commission += commissionAmount;
+    emit GameJoined(gameID, _msgSender(), msg.value);
   }
 
   /**
@@ -105,14 +105,15 @@ contract YankenpoFactory is Ownable, Pausable {
   }
 
   /**
-   * @dev Function that set the commision percent.
-   * @param percent The commision percent.
+   * @dev Function that set the commission percent.
+   * @param percent The commission percent. 
+   * Note: commision percent is defined with e^10 decimals.
    */
-  function setCommisionPercent(uint8 percent) external
+  function setCommissionPercent(uint8 percent) external
     onlyOwner()
   {
-    require(percent>0 && percent <=100, "Invalid commision percent");
-    commision_percent = percent;
+    require(percent>0 && percent <=100, "Invalid commission percent");
+    commissionPercent = percent;
   }
 
   /**
@@ -122,19 +123,19 @@ contract YankenpoFactory is Ownable, Pausable {
   function setRoundExpirationTime(uint256 time) external
     onlyOwner()
   {
-    round_expiration_time = time;
+    roundExpirationTime = time;
   }
 
   /**
-   * @dev Function that withdraw the commision.
+   * @dev Function that withdraw the commission.
    * @param payee The payee address.
    */
   function withdraw(address payable payee) external payable
     onlyOwner()
   {
-    require(commision>0, "No commision to withdraw");
-    uint256 payment = commision;
-    commision = 0;
+    require(commission>0, "No commission to withdraw");
+    uint256 payment = commission;
+    commission = 0;
     payee.transfer(payment);
     emit Withdrawn(payee, payment);
   }

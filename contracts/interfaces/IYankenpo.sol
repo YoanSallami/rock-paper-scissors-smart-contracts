@@ -14,7 +14,7 @@ interface IYankenpo {
     event GameFinished(address indexed winner, address indexed looser);
     event GameCanceled(address indexed player_1, uint256 pending_bet);
 
-    event Withdrawn(address indexed payee, uint256 bet);
+    event Withdrawn(address indexed payee, uint256 amount);
 
     function isGameCreated() external view returns (bool);
     function isGameStarted() external view returns (bool);

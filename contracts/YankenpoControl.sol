@@ -14,26 +14,37 @@ contract YankenpoControl is AccessControl {
     bytes32 public constant TREASURER_ROLE = keccak256("TREASURER_ROLE");
     bytes32 public constant MAINTAINER_ROLE = keccak256("MAINTAINER_ROLE");
 
-    address factory;
+    address private _factoryAddr;
+    address private _commissionSplitterAddr;
 
     /**
      * @dev Smart contract constructor
      */
     constructor() AccessControl() {
-        address factory_addr = address(new YankenpoFactory());
-        factory = factory_addr;
+        address factoryAddr = address(new YankenpoFactory());
+        _factoryAddr = factoryAddr;
         _setupRole(DEFAULT_ADMIN_ROLE, _msgSender());
     }
 
     /**
-     * @dev Function that pause game creation.
+     * @dev Function that set the factory address.
      * Requirement: the factory need to transfer its ownership to this contract.
-     * @param factory_addr The new factory address
+     * @param factoryAddr The new factory address
      */
-    function setFactoryAddr(address factory_addr) public
+    function setFactoryAddr(address factoryAddr) public
         onlyRole(MAINTAINER_ROLE)
     {
-        factory = factory_addr;
+        _factoryAddr = factoryAddr;
+    }
+
+    /**
+     * @dev Function that set the commission splitter address.
+     * @param splitterAddr The new commission splitter address
+     */
+    function setCommissionSplitterAddr(address splitterAddr) public
+        onlyRole(MAINTAINER_ROLE)
+    {
+        _commissionSplitterAddr = splitterAddr;
     }
 
     /**
@@ -42,7 +53,7 @@ contract YankenpoControl is AccessControl {
     function pauseGameCreation() public
         onlyRole(MAINTAINER_ROLE)
     {
-        YankenpoFactory(factory).pauseGameCreation();
+        YankenpoFactory(_factoryAddr).pauseGameCreation();
     }
 
     /**
@@ -51,7 +62,7 @@ contract YankenpoControl is AccessControl {
     function unpauseGameCreation() public
         onlyRole(MAINTAINER_ROLE)
     {
-        YankenpoFactory(factory).unpauseGameCreation();
+        YankenpoFactory(_factoryAddr).unpauseGameCreation();
     }
 
     /**
@@ -61,7 +72,7 @@ contract YankenpoControl is AccessControl {
     function setMinimumBet(uint256 bet) public
         onlyRole(MAINTAINER_ROLE)
     {
-        YankenpoFactory(factory).setMinimumBet((bet));
+        YankenpoFactory(_factoryAddr).setMinimumBet((bet));
     }
 
     /**
@@ -71,7 +82,7 @@ contract YankenpoControl is AccessControl {
     function setCommisionPercent(uint8 percent) public
         onlyRole(MAINTAINER_ROLE)
     {
-        YankenpoFactory(factory).setCommisionPercent(percent);
+        YankenpoFactory(_factoryAddr).setCommissionPercent(percent);
     }
 
     /**
@@ -81,7 +92,7 @@ contract YankenpoControl is AccessControl {
     function setRoundExpirationTime(uint256 time) public
         onlyRole(MAINTAINER_ROLE)
     {
-        YankenpoFactory(factory).setRoundExpirationTime(time);
+        YankenpoFactory(_factoryAddr).setRoundExpirationTime(time);
     }
 
     /**
@@ -90,7 +101,7 @@ contract YankenpoControl is AccessControl {
     function withdraw() public payable
         onlyRole(TREASURER_ROLE)
     {
-        YankenpoFactory(factory).withdraw(payable(_msgSender()));
+        YankenpoFactory(_factoryAddr).withdraw(payable(_commissionSplitterAddr));
     }
 
 }
