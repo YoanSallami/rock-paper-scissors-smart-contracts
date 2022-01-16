@@ -12,11 +12,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  */
 contract Yankenpo is Ownable {
 
-  event NewRound(uint round_id, address indexed player1, address indexed player2);
-  event RoundCommited(uint256 round_id, address indexed player1, address indexed player2);
-  event RoundPlayed(uint256 round_id, address indexed player1, address indexed player2);
-  event RoundRevealed(uint256 round_id, address indexed player1, address indexed player2);
-  event RoundTimeout(uint256 round_id, address indexed player1, address indexed player2);
+  event NewRound(uint roundID, address indexed player1, address indexed player2);
+  event RoundCommited(uint256 roundID, address indexed player1, address indexed player2);
+  event RoundPlayed(uint256 roundID, address indexed player1, address indexed player2);
+  event RoundRevealed(uint256 roundID, address indexed player1, address indexed player2);
+  event RoundTimeout(uint256 roundID, address indexed player1, address indexed player2);
 
   event GameStarted(address indexed player1, uint256 pendingBet);
   event GameReady(address indexed player1, address indexed player2, uint256 pendingBet);
@@ -282,9 +282,9 @@ contract Yankenpo is Ownable {
   {
       // Create a new round
     rounds.push(Round(State.Created, 0, 0));
-    uint256 round_id = rounds.length - 1;
-    emit NewRound(round_id, player1, player2);
-    return round_id;
+    uint256 roundID = rounds.length - 1;
+    emit NewRound(roundID, player1, player2);
+    return roundID;
   }
 
   /**
