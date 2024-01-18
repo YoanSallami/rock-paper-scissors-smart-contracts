@@ -1,14 +1,14 @@
-# yankenpo-smart-contracts
+# Rock Paper Scissors fully on the BlockChain!
 
-Smart contracts for Yankenpo blockchain based game !
+Smart contracts for rock paper scissors on-chain game! Based on the coin tossing protocol to secure rounds.
 
-[![Node.js CI](https://github.com/doxa-games-studio/yankenpo-smart-contracts/actions/workflows/node.js.yml/badge.svg)](https://github.com/doxa-games-studio/yankenpo-smart-contracts/actions/workflows/node.js.yml)
+Note: Deprecated, this repository use an old version of solidity, feel free to update this codebase 
 
 # Install
 
 ```
-git clone https://github.com/doxa-games-studio/yankenpo-smart-contracts.git
-cd yankenpo-smart-contracts
+git clone https://github.com/YoanSallami/rock-paper-scissors-smart-contracts.git
+cd rock-paper-scissors-smart-contracts
 yarn
 ```
 
