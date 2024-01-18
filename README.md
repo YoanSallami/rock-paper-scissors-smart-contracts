@@ -1,6 +1,8 @@
-# Rock Paper Scissors fully on the BlockChain!
+# Rock Paper Scissors on Ethereum Compatible BlockChain!
 
 Smart contracts for rock paper scissors on-chain game! Based on the coin tossing protocol to secure rounds.
+
+[![License: GPL v3](https://img.shields.io/badge/License-GPL%20v3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0)
 
 Note: Deprecated, this repository use an old version of solidity, feel free to update this codebase 
 
